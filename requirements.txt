@@ -1,0 +1,8 @@
+dlib==20.0.0
+imutils==0.5.4
+matplotlib==3.10.8
+numpy==2.4.2
+opencv_python==4.13.0.92
+pygame==2.6.1
+scikit_learn==1.8.0
+scipy==1.17.0
