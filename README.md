@@ -22,14 +22,16 @@ Through these works, we could research and make technology of intelligent vehicl
 ## System diagram
  
 <img src="https://user-images.githubusercontent.com/36785390/52612113-b61b6c00-2ecb-11e9-90f2-da6a51e00a7d.png" width="40%">
-    
+  <img width="1409" height="781" alt="Screenshot 2026-02-15 at 3 00 07 PM" src="https://github.com/user-attachments/assets/e2512f3e-24fa-4074-92a3-5b59721a3bcd" />
+
     
 Get face images from the camera -> Grayscaling -> Light processing -> HOG & find face -> Face Landmark Estimation -> Detect drowsiness driving. 
    
 + In detail
 
 <img src="https://user-images.githubusercontent.com/36785390/52612116-ba478980-2ecb-11e9-9851-0e037d0db792.png" width="80%">
-  
+  <img width="653" height="476" alt="Screenshot 2026-02-15 at 3 02 22 PM" src="https://github.com/user-attachments/assets/b8d7a3f5-1f08-4b76-8807-395f6c502cd2" />
+
 0 : The filming.
   
 10 : Lightness preprocessing.
