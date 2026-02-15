@@ -30,7 +30,6 @@ Get face images from the camera -> Grayscaling -> Light processing -> HOG & find
 + In detail
 
 <img src="https://user-images.githubusercontent.com/36785390/52612116-ba478980-2ecb-11e9-9851-0e037d0db792.png" width="80%">
-  <img width="653" height="476" alt="Screenshot 2026-02-15 at 3 02 22 PM" src="https://github.com/user-attachments/assets/b8d7a3f5-1f08-4b76-8807-395f6c502cd2" />
 
 0 : The filming.
   
@@ -72,8 +71,7 @@ Get face images from the camera -> Grayscaling -> Light processing -> HOG & find
  
 + **Invert the lightness channel** detached from the original image and **composed it with the original grayscale image** to produce a clear image.
   
- 
-<img src="https://user-images.githubusercontent.com/36785390/52613306-bb2eea00-2ed0-11e9-9b64-5c45981e953e.png" width="40%">
+<img width="653" height="476" alt="Screenshot 2026-02-15 at 3 02 22 PM" src="https://github.com/user-attachments/assets/b8d7a3f5-1f08-4b76-8807-395f6c502cd2" /> 
   
 + Converting color to grayscale using **Luma Coding**
 
