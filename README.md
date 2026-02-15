@@ -103,7 +103,7 @@ Get face images from the camera -> Grayscaling -> Light processing -> HOG & find
 + This program has **set a 50% value from the average EAR value to the threshold value**. So, 1) measures the average EAR value when the eyes are open, 2) measures the average EAR value when the driver is closing his eyes, and 3) sets the threshold using the above two results.
 
 
-<img src="https://user-images.githubusercontent.com/36785390/52703067-ded15d80-2fc0-11e9-9b64-1fdbf554c12a.png">
+<img width="762" height="509" alt="Screenshot 2026-02-15 at 7 41 00 PM" src="https://github.com/user-attachments/assets/5df634cd-6cba-45b4-ab9f-b5b944d5be8a" />
 
   
 ## Drowsiness level selection
