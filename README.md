@@ -127,10 +127,7 @@ Get face images from the camera -> Grayscaling -> Light processing -> HOG & find
   2. If you are dozing (sleeping and waking again and again) in less than 15 seconds, the drowsiness phase starts at level 1 and then the next alarm goes up to 0.
   3. The first alarm is level 2 and the second alarm is level 1 and the third alarm makes level 0 sound when driving drowsy between 15 and 30 seconds.
   4. If you have not been drowsy for more than 30 seconds, set level 2.
-  
-<img src="https://user-images.githubusercontent.com/36785390/52933523-00529080-3397-11e9-9482-41dd01a476ca.png" width="50%">
-      
-<img src="https://user-images.githubusercontent.com/36785390/52762615-b0549080-305b-11e9-872a-127992397496.png" width="50%">
+
    
 + To distinguish drowsiness level, I used K-Nearest Neighbor(KNN) supervised learning algorithm.
 
