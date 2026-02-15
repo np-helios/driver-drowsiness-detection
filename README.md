@@ -112,8 +112,8 @@ Get face images from the camera -> Grayscaling -> Light processing -> HOG & find
   2. Prescribed speed : 100km/h, Retention distance between vehicles >= 100m
   3. The time which takes a person to push the brakes 0.45 (response time) + 0.2 (brake pushing time) + 0.05 (time to start braking) = 0.7 seconds
   4. The braking distance of a vehicle running at 100 km/h is 56 meters (the driver has 44 meters of free distance)
-  
-<img src="https://user-images.githubusercontent.com/36785390/52933285-2b88b000-3396-11e9-9e6d-d73dfb27c6de.png" width="50%">
+
+ <img width="767" height="494" alt="Screenshot 2026-02-15 at 7 44 25 PM" src="https://github.com/user-attachments/assets/2a9d2ae5-264f-405b-ae8d-c29abfc1d3cf" />
   
 + Under the above conditions, the drivers has almost 0.9 seconds of free time (100km/h -> 27m/s == 1.63s of free time. 1.63 - 0.7 = 0.9 s).
 + 30 FPS -> 27 frame = 0.9s.
