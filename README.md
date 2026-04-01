@@ -1,4 +1,4 @@
-# Drowsiness driving detection system with OpenCV & KNN
+# Drowsiness driving detection system with OpenCV & personalized baseline modeling
 ***
 : In this repository, a program was developed to **identify the driver's drowsiness based on real-time camera image and image processing techniques**, and this program makes warning alarms go off for each level of drowsiness when it detects drowsiness driving.
 
@@ -17,7 +17,7 @@ Finally, the **KNN algorithm was used** to divide the drivers' level of drowsine
 Through these works, we could research and make technology of intelligent vehicle systems and vision computing, which is gaining much attention recently.
   
     
-***This code is in Python 3.6***
+***Current app path is tested as a modern Python project and now uses MediaPipe Face Mesh for facial landmarks.***
 
 ## System diagram
     
@@ -158,7 +158,53 @@ Get face images from the camera -> Grayscaling -> Light processing -> HOG & find
 
   
 ## Execution
-+ I run drowsiness_detector.ipynb just typing CTRL+ENTER.
++ Install the dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
++ Run the detector from the refactored Python entry point:
+
+```bash
+python drowsiness_detector.py --driver-id nishtha
+```
+
++ Optional flags:
+
+```bash
+python drowsiness_detector.py --driver-id nishtha --camera-source 0 --frame-width 400 --baseline-seconds 60
+```
+
++ The original notebook is still included as an experiment log, but the main application code now lives in the `driver_drowsiness/` package so it is easier to extend.
++ The detector now uses MediaPipe Face Mesh instead of dlib, which makes setup much easier on modern Macs.
++ The detector supports personalized driver baselines, saves per-driver profiles to `profiles/<driver-id>.json`, and writes JSONL runtime events to `logs/events.jsonl` by default.
+
+## Project structure
+
+```text
+driver_drowsiness/
+  app.py           # Runtime loop and calibration flow
+  audio.py         # Alarm playback
+  baseline.py      # Driver baseline persistence and rolling behavior
+  config.py        # Tunable runtime settings and asset paths
+  landmarks.py     # MediaPipe eye landmark extraction
+  logging_utils.py # JSONL event logging
+  metrics.py       # EAR calculation
+  preprocess.py    # Lighting compensation helpers
+  severity.py      # Personalized baseline-deviation scoring
+  training.py      # Legacy synthetic-KNN experiment
+tests/
+  test_baseline.py # Personalized baseline tests
+  test_metrics.py  # Smoke test for EAR math
+```
+
+## Recent improvements
+
++ The detector can build and reuse a per-driver baseline profile instead of assuming one universal blink pattern.
++ Alarm severity is scored by deviation from that personal baseline, which is a better fit for real-world variation between drivers.
++ MediaPipe Face Mesh replaces dlib, which removes the hardest macOS installation blocker in this repo.
++ Alarm and calibration events are logged to JSONL so detector behavior can be reviewed after a run.
   
 ## References
 + [Machine Learning is Fun! Part 4: Modern Face Recognition with Deep Learning](https://medium.com/@ageitgey/machine-learning-is-fun-part-4-modern-face-recognition-with-deep-learning-c3cffc121d78)

@@ -1,5 +1,9 @@
 Untitled.ipynb
 __pycache__/
+.venv/
+logs/
+profiles/
+models/
 
 # Created by https://www.gitignore.io/api/jupyternotebook
 # Edit at https://www.gitignore.io/?templates=jupyternotebook
