@@ -179,6 +179,69 @@ python drowsiness_detector.py --driver-id nishtha --camera-source 0 --frame-widt
 + The original notebook is still included as an experiment log, but the main application code now lives in the `driver_drowsiness/` package so it is easier to extend.
 + The detector now uses MediaPipe Face Mesh instead of dlib, which makes setup much easier on modern Macs.
 + The detector supports personalized driver baselines, saves per-driver profiles to `profiles/<driver-id>.json`, and writes JSONL runtime events to `logs/events.jsonl` by default.
++ The live dashboard now combines EAR, MAR, full 3D head pose estimation, fatigue scoring, break recommendation, and session analytics.
+
+## Deployment for Demo / Exam
+
++ For a local macOS deployment, the repo now includes a one-click launcher and helper scripts.
+
++ First-time setup:
+
+```bash
+./scripts/setup_macos.sh
+```
+
++ Run the detector through the packaged launcher script:
+
+```bash
+./scripts/run_detector.sh --driver-id exam_demo --baseline-seconds 20 --recalibrate
+```
+
++ One-click macOS launcher:
+
+```bash
+open ./launch_demo.command
+```
+
++ Optional: build a standalone macOS app bundle with PyInstaller:
+
+```bash
+./scripts/build_macos_app.sh
+```
+
++ After build, the app bundle will be created at:
+
+```text
+dist/Driver Drowsiness Detector.app
+```
+
++ This gives the project a clear deployment path for demonstrations: local environment setup, repeatable run script, and optional desktop app packaging.
+
+## Hosted Deployment
+
++ For a true non-local deployment, this project now includes a hosted web demo entrypoint at [app.py](/Users/nishthapandey/Desktop/Driver_Drowsiness_Detection/app.py).
++ The hosted version is designed for browser webcam access and is suitable for platforms like Hugging Face Spaces using Gradio.
++ Gradio supports webcam image inputs and streaming from the browser, and Hugging Face Spaces can host Gradio apps directly:
+  [Gradio webcam image docs](https://www.gradio.app/main/docs/gradio/image)
+  [Gradio streaming inputs guide](https://www.gradio.app/main/guides/streaming-inputs)
+  [Hugging Face Gradio Spaces docs](https://huggingface.co/docs/hub/en/spaces-sdks-gradio)
+
++ To run the hosted entrypoint locally first:
+
+```bash
+python app.py
+```
+
++ To deploy on Hugging Face Spaces:
+
+1. Create a new Space and choose `Gradio` as the SDK.
+2. Push this repository or upload the project files.
+3. Ensure `requirements.txt` is present.
+4. Set the app file to `app.py` if prompted.
+5. After the Space builds, share the generated public URL.
+
++ Hugging Face states that each new commit to a Space automatically rebuilds and restarts the app:
+  [Spaces overview](https://huggingface.co/docs/hub/spaces-overview)
 
 ## Project structure
 
@@ -186,13 +249,15 @@ python drowsiness_detector.py --driver-id nishtha --camera-source 0 --frame-widt
 driver_drowsiness/
   app.py           # Runtime loop and calibration flow
   audio.py         # Alarm playback
+  analytics.py     # Session-level summaries and metrics
   baseline.py      # Driver baseline persistence and rolling behavior
   config.py        # Tunable runtime settings and asset paths
   landmarks.py     # MediaPipe eye landmark extraction
   logging_utils.py # JSONL event logging
-  metrics.py       # EAR calculation
+  metrics.py       # EAR and MAR calculations
+  pose.py          # Full 3D head pose estimation using solvePnP
   preprocess.py    # Lighting compensation helpers
-  severity.py      # Personalized baseline-deviation scoring
+  severity.py      # Personalized multi-signal fatigue scoring
   training.py      # Legacy synthetic-KNN experiment
 tests/
   test_baseline.py # Personalized baseline tests
@@ -203,6 +268,8 @@ tests/
 
 + The detector can build and reuse a per-driver baseline profile instead of assuming one universal blink pattern.
 + Alarm severity is scored by deviation from that personal baseline, which is a better fit for real-world variation between drivers.
++ MAR-based yawn tracking, full 3D head pose estimation, and a fused fatigue score are now part of the live monitoring path.
++ The app shows a compact dashboard with EAR, MAR, head pose, fatigue score, alert counts, and break recommendations.
 + MediaPipe Face Mesh replaces dlib, which removes the hardest macOS installation blocker in this repo.
 + Alarm and calibration events are logged to JSONL so detector behavior can be reviewed after a run.
   

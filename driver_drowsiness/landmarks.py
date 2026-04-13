@@ -13,6 +13,11 @@ from mediapipe.tasks.python import vision
 # MediaPipe Face Mesh landmark indices for EAR-style eye polygons.
 LEFT_EYE_INDICES = [33, 160, 158, 133, 153, 144]
 RIGHT_EYE_INDICES = [362, 385, 387, 263, 373, 380]
+MOUTH_INDICES = [61, 81, 13, 311, 291, 402, 14, 178]
+NOSE_TIP_INDEX = 1
+CHIN_INDEX = 152
+LEFT_EYE_CORNER_INDEX = 33
+RIGHT_EYE_CORNER_INDEX = 263
 DEFAULT_MODEL_URL = (
     "https://storage.googleapis.com/mediapipe-models/face_landmarker/"
     "face_landmarker/float16/latest/face_landmarker.task"
@@ -23,6 +28,13 @@ DEFAULT_MODEL_URL = (
 class EyeLandmarks:
     left_eye: list[tuple[float, float]]
     right_eye: list[tuple[float, float]]
+    mouth: list[tuple[float, float]]
+    nose_tip: tuple[float, float]
+    chin: tuple[float, float]
+    left_eye_corner: tuple[float, float]
+    right_eye_corner: tuple[float, float]
+    left_mouth_corner: tuple[float, float]
+    right_mouth_corner: tuple[float, float]
 
 
 class FaceMeshLandmarks:
@@ -57,7 +69,18 @@ class FaceMeshLandmarks:
         height, width = frame_bgr.shape[:2]
         left_eye = [self._point(face_landmarks[index], width, height) for index in LEFT_EYE_INDICES]
         right_eye = [self._point(face_landmarks[index], width, height) for index in RIGHT_EYE_INDICES]
-        return EyeLandmarks(left_eye=left_eye, right_eye=right_eye)
+        mouth = [self._point(face_landmarks[index], width, height) for index in MOUTH_INDICES]
+        return EyeLandmarks(
+            left_eye=left_eye,
+            right_eye=right_eye,
+            mouth=mouth,
+            nose_tip=self._point(face_landmarks[NOSE_TIP_INDEX], width, height),
+            chin=self._point(face_landmarks[CHIN_INDEX], width, height),
+            left_eye_corner=self._point(face_landmarks[LEFT_EYE_CORNER_INDEX], width, height),
+            right_eye_corner=self._point(face_landmarks[RIGHT_EYE_CORNER_INDEX], width, height),
+            left_mouth_corner=self._point(face_landmarks[61], width, height),
+            right_mouth_corner=self._point(face_landmarks[291], width, height),
+        )
 
     def close(self) -> None:
         self._face_mesh.close()

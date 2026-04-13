@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "driver-drowsiness-detection"
+version = "0.1.0"
+description = "Personalized driver drowsiness detection with MediaPipe, EAR/MAR, and adaptive baselines."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "imutils==0.5.4",
+  "matplotlib==3.10.8",
+  "mediapipe==0.10.33",
+  "numpy==2.4.4",
+  "opencv-contrib-python==4.13.0.92",
+]
+
+[project.scripts]
+driver-drowsiness = "driver_drowsiness.app:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["driver_drowsiness*"]
