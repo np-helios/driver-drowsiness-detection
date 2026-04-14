@@ -74,7 +74,7 @@ def create_session(driver_id: str, baseline_seconds: float, recalibrate: bool) -
 
 def process_stream(frame_rgb: np.ndarray | None, session: WebSessionState | None):
     if frame_rgb is None:
-        return None, "Waiting for webcam frames...", session
+        return None, _session_markdown(session) if session is not None else "Waiting for webcam frames...", _metrics_html(session), _alert_html(session), session
     if session is None:
         session, _ = create_session("web-demo", 20.0, True)
 
@@ -130,37 +130,68 @@ def process_stream(frame_rgb: np.ndarray | None, session: WebSessionState | None
         (0, 220, 255) if not session.baseline_ready else (90, 255, 170),
     )
     _draw_status_strip(frame_bgr, session)
+    _draw_alert_banner(frame_bgr, session)
     annotated_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
     status = _session_markdown(session)
-    return annotated_rgb, status, session
+    return annotated_rgb, status, _metrics_html(session), _alert_html(session), session
 
 
 def build_demo() -> gr.Blocks:
-    with gr.Blocks(title="Driver Drowsiness Detector") as demo:
+    css = """
+    .app-shell {max-width: 1320px; margin: 0 auto;}
+    .metric-grid {display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;}
+    .metric-card {background:#101418; border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:14px;}
+    .metric-label {font-size:12px; text-transform:uppercase; letter-spacing:0.08em; color:#9db0bd;}
+    .metric-value {font-size:28px; font-weight:700; color:#f4f7fb; margin-top:6px;}
+    .metric-sub {font-size:13px; color:#c6d1da; margin-top:4px;}
+    .alert-panel {border-radius:14px; padding:14px 16px; margin-top:12px; border:1px solid rgba(255,255,255,0.08);}
+    .alert-ok {background:#0f1c14; color:#9df0b8;}
+    .alert-warn {background:#2a170c; color:#ffd08a;}
+    .alert-danger {background:#2c1010; color:#ff9b9b;}
+    .session-note {background:#11161b; border-radius:14px; padding:14px 16px; color:#d4dde4; border:1px solid rgba(255,255,255,0.08);}
+    """
+    with gr.Blocks(title="Driver Drowsiness Detector", css=css) as demo:
         gr.Markdown(
             """
             # Driver Drowsiness Detector
-            Personalized EAR/MAR-based monitoring with face, eye, and mouth detection overlays.
+            Browser-deployed personalized monitoring with live face, eye, and mouth detection overlays.
             """
         )
-        with gr.Row():
-            driver_id = gr.Textbox(label="Driver ID", value="exam_demo")
-            baseline_seconds = gr.Slider(label="Baseline seconds", minimum=10, maximum=60, value=20, step=5)
-            recalibrate = gr.Checkbox(label="Force recalibration", value=True)
-            start_btn = gr.Button("Start / Reset Session", variant="primary")
-        with gr.Row():
-            webcam = gr.Image(label="Webcam", sources="webcam", type="numpy")
-            processed = gr.Image(label="Detector Output")
-        status = gr.Markdown("Click **Start / Reset Session** and allow webcam access.")
+        with gr.Row(elem_classes=["app-shell"]):
+            with gr.Column(scale=3):
+                processed = gr.Image(label="Live Detector Output", type="numpy", streaming=True, height=560)
+                with gr.Accordion("Raw webcam input", open=False):
+                    webcam = gr.Image(
+                        label="Webcam Input",
+                        sources="webcam",
+                        type="numpy",
+                        streaming=True,
+                        webcam_options=gr.WebcamOptions(
+                            mirror=True,
+                            constraints={"width": {"ideal": 960}, "height": {"ideal": 540}, "facingMode": "user"},
+                        ),
+                    )
+            with gr.Column(scale=2):
+                driver_id = gr.Textbox(label="Driver ID", value="exam_demo")
+                baseline_seconds = gr.Slider(label="Baseline seconds", minimum=10, maximum=60, value=20, step=5)
+                recalibrate = gr.Checkbox(label="Force recalibration", value=True)
+                start_btn = gr.Button("Start / Reset Session", variant="primary")
+                status = gr.Markdown("Click **Start / Reset Session** and allow webcam access.", elem_classes=["session-note"])
+                metrics = gr.HTML(_metrics_html(None))
+                alert_box = gr.HTML(_alert_html(None))
         session_state = gr.State(None)
 
-        start_btn.click(create_session, [driver_id, baseline_seconds, recalibrate], [session_state, status])
+        start_btn.click(
+            _create_session_ui,
+            [driver_id, baseline_seconds, recalibrate],
+            [session_state, status, metrics, alert_box],
+        )
         webcam.stream(
             process_stream,
             [webcam, session_state],
-            [processed, status, session_state],
+            [processed, status, metrics, alert_box, session_state],
             time_limit=600,
-            stream_every=0.2,
+            stream_every=0.1,
             concurrency_limit=1,
         )
 
@@ -323,6 +354,38 @@ def _draw_status_strip(frame, session: WebSessionState) -> None:
         x += cv2.getTextSize(text, font, 0.31, 1)[0][0] + 14
 
 
+def _draw_alert_banner(frame, session: WebSessionState) -> None:
+    if session.alert_text == "No alert" and not session.break_recommended:
+        return
+    color = (0, 190, 255) if session.alert_level == "Normal" else (0, 140, 255) if session.alert_level == "Short" else (0, 70, 255)
+    font = cv2.FONT_HERSHEY_DUPLEX
+    line = cv2.LINE_AA
+    label = "Break recommended" if session.break_recommended else session.alert_text
+    text_size, _ = cv2.getTextSize(label, font, 0.48, 1)
+    x = 14
+    y = 52
+    pad_x = 10
+    pad_y = 7
+    overlay = frame.copy()
+    cv2.rectangle(
+        overlay,
+        (x, y),
+        (x + text_size[0] + pad_x * 2, y + text_size[1] + pad_y * 2),
+        (25, 25, 25),
+        -1,
+    )
+    cv2.addWeighted(overlay, 0.45, frame, 0.55, 0, frame)
+    cv2.rectangle(
+        frame,
+        (x, y),
+        (x + text_size[0] + pad_x * 2, y + text_size[1] + pad_y * 2),
+        color,
+        1,
+        line,
+    )
+    cv2.putText(frame, label, (x + pad_x, y + text_size[1] + 1), font, 0.48, color, 1, line)
+
+
 def _draw_mode_badge(frame, label: str, color: tuple[int, int, int]) -> None:
     font = cv2.FONT_HERSHEY_DUPLEX
     line = cv2.LINE_AA
@@ -359,6 +422,8 @@ def _compute_ear_threshold(open_ear_mean: float, open_ear_std: float) -> float:
 
 
 def _session_markdown(session: WebSessionState, prefix: str | None = None) -> str:
+    if session is None:
+        return "Click **Start / Reset Session** and allow webcam access."
     mode = "Monitoring" if session.baseline_ready else "Calibrating"
     lines = []
     if prefix:
@@ -376,3 +441,54 @@ def _session_markdown(session: WebSessionState, prefix: str | None = None) -> st
         ]
     )
     return "\n\n".join(lines)
+
+
+def _metrics_html(session: WebSessionState | None) -> str:
+    if session is None:
+        return """
+        <div class="metric-grid">
+          <div class="metric-card"><div class="metric-label">EAR</div><div class="metric-value">--</div><div class="metric-sub">Eye Aspect Ratio</div></div>
+          <div class="metric-card"><div class="metric-label">MAR</div><div class="metric-value">--</div><div class="metric-sub">Mouth Aspect Ratio</div></div>
+          <div class="metric-card"><div class="metric-label">Fatigue</div><div class="metric-value">--</div><div class="metric-sub">Live deviation score</div></div>
+          <div class="metric-card"><div class="metric-label">Events</div><div class="metric-value">--</div><div class="metric-sub">Alerts and yawns</div></div>
+        </div>
+        """
+    return f"""
+    <div class="metric-grid">
+      <div class="metric-card">
+        <div class="metric-label">EAR</div>
+        <div class="metric-value">{session.current_ear:.1f}</div>
+        <div class="metric-sub">Eye closure signal</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">MAR</div>
+        <div class="metric-value">{session.current_mar:.3f}</div>
+        <div class="metric-sub">Mouth opening signal</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Fatigue</div>
+        <div class="metric-value">{session.current_fatigue_score:.2f}</div>
+        <div class="metric-sub">Personalized deviation score</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Events</div>
+        <div class="metric-value">{session.analytics.alerts_triggered} / {session.analytics.yawn_events}</div>
+        <div class="metric-sub">Alerts / Yawns</div>
+      </div>
+    </div>
+    """
+
+
+def _alert_html(session: WebSessionState | None) -> str:
+    if session is None or (session.alert_text == "No alert" and not session.break_recommended):
+        return '<div class="alert-panel alert-ok"><strong>Status:</strong> Monitoring normally. No active drowsiness alert.</div>'
+    if session.break_recommended:
+        return '<div class="alert-panel alert-danger"><strong>Action needed:</strong> Sustained fatigue detected. Please take a short break.</div>'
+    if session.alert_level in {"Power", "Normal"}:
+        return '<div class="alert-panel alert-danger"><strong>Drowsiness alert:</strong> Sustained eye closure detected.</div>'
+    return '<div class="alert-panel alert-warn"><strong>Warning:</strong> Mild fatigue deviation detected.</div>'
+
+
+def _create_session_ui(driver_id: str, baseline_seconds: float, recalibrate: bool):
+    session, status = create_session(driver_id, baseline_seconds, recalibrate)
+    return session, status, _metrics_html(session), _alert_html(session)
